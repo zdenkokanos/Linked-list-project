@@ -143,11 +143,11 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
 void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
 {
     ZAZNAM *current = *modul;
-    int i = 0;
+    int i = 1;
     current = current->next;
     while (current != NULL)
     {
-        printf("%d:\n", i + 1); // i + 1 because index is usually displayed starting from 1
+        printf("%d:\n", i);
         printf("ID: %c%d%c\t%s\t%.2lf\n", current->id_mer_modulu.oznacenie, current->id_mer_modulu.cislovanie, current->id_mer_modulu.druh, current->typ, current->hodnota);
         printf("Poz: +%.4lf\t+%.4lf\n", current->pos_mer_modulu.latitude, current->pos_mer_modulu.longitude);
         printf("DaC: %d\t%d\n", current->date, current->cas);
