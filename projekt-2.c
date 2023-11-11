@@ -26,7 +26,7 @@ typedef struct mer_modul
     double hodnota;
     int cas;
     int date;
-    struct mer_modul *next_all;
+    struct mer_modul *modul;
 } ZAZNAM;
 
 FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
@@ -54,7 +54,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         if (*modul == NULL)
         {
             printf("Alokácia štruktúry zlyhala.\n");
-            exit(EXIT_FAILURE);
+            exit(-1);
         }
 
         char line[100];
@@ -116,12 +116,27 @@ void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
     {
         for (int i = 0; i < (*data_count); i++)
         {
-            printf("%d:\n", i + 1); // lebo index he od 0
+            printf("%d:\n", i + 1); // lebo index je od 0
             printf("ID: %c%d%c\t%s\t%.2lf\n", (*modul)[i].id_mer_modulu.oznacenie, (*modul)[i].id_mer_modulu.cislovanie, (*modul)[i].id_mer_modulu.druh, (*modul)[i].typ, (*modul)[i].hodnota);
             printf("Poz: +%.4lf\t+%.4lf\n", (*modul)[i].pos_mer_modulu.latitude, (*modul)[i].pos_mer_modulu.longitude);
-            printf("DaC: %d\t%d\n", (*modul)[i].cas, (*modul)[i].date);
+            printf("DaC: %d\t%d\n", (*modul)[i].date, (*modul)[i].cas);
         }
     }
+}
+void f_r()
+{
+}
+
+void f_z()
+{
+}
+
+void f_u()
+{
+}
+
+void f_p()
+{
 }
 
 int main()
@@ -142,6 +157,18 @@ int main()
         case 'v':
             f_v(file_data, &n_was_started, &data_count, &modul);
             break;
+        case 'u':
+            f_u();
+            break;
+        case 'p':
+            f_p();
+            break;
+        case 'z':
+            f_z();
+            break;
+        case 'r':
+            f_r();
+            break;
         case 'k':
             if (n_was_started == true)
             {
@@ -155,6 +182,7 @@ int main()
                 return 0;
             }
         default:
+            printf("Bolo zadané nesprávne písmeno, skúste znova:\n");
             break;
         }
     }
