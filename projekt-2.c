@@ -26,7 +26,7 @@ typedef struct mer_modul
     double hodnota;
     int cas;
     int date;
-    struct mer_modul *modul;
+    struct mer_modul *next;
 } ZAZNAM;
 
 FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
@@ -38,6 +38,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         if (file_data == NULL)
         {
             printf("Neotvorený súbor.\n");
+            exit(-1);
         }
         fseek(file_data, 0, SEEK_SET);
         for (data = fgetc(file_data); data != EOF; data = fgetc(file_data))
@@ -58,23 +59,35 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         }
 
         char line[100];
+        ZAZNAM *current = *modul;
         for (int i = 0; i < (*data_count); i++)
         {
-            fgets(line, sizeof(line), file_data); // posunie pointer
-            fscanf(file_data, " %c%d%c", &(*modul)[i].id_mer_modulu.oznacenie, &(*modul)[i].id_mer_modulu.cislovanie, &(*modul)[i].id_mer_modulu.druh);
-            fscanf(file_data, "%lf %lf ", &(*modul)[i].pos_mer_modulu.latitude, &(*modul)[i].pos_mer_modulu.longitude);
+            ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
+            if (novy_zaznam == NULL)
+            {
+                printf("Alokácia uzlu zlyhala.\n");
+                exit(-1);
+            }
+            current->next = novy_zaznam;
+            current = current->next;
+            current->next = NULL;
+
+            char line[100];
             fgets(line, sizeof(line), file_data);
-            strncpy((*modul)[i].typ, line, 2);
-            fscanf(file_data, "%lf ", &(*modul)[i].hodnota);
-            fscanf(file_data, "%d ", &(*modul)[i].cas);
-            fscanf(file_data, "%d ", &(*modul)[i].date);
+            fscanf(file_data, " %c%d%c", &current->id_mer_modulu.oznacenie, &current->id_mer_modulu.cislovanie, &current->id_mer_modulu.druh);
+            fscanf(file_data, "%lf %lf ", &current->pos_mer_modulu.latitude, &current->pos_mer_modulu.longitude);
+            fgets(line, sizeof(line), file_data);
+            strncpy(current->typ, line, 2);
+            fscanf(file_data, "%lf ", &current->hodnota);
+            fscanf(file_data, "%d ", &current->cas);
+            fscanf(file_data, "%d ", &current->date);
         }
 
         printf("Načítalo sa %d záznamov.\n", (*data_count));
         *n_was_started = true;
         return file_data;
     }
-    else if (*n_was_started == true)
+    else
     {
         free(*modul);
         *modul = NULL;
@@ -91,36 +104,55 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         fseek(file_data, 0, SEEK_SET);
 
         *modul = (ZAZNAM *)malloc((*data_count) * sizeof(ZAZNAM));
+        if (*modul == NULL)
+        {
+            printf("Alokácia štruktúry zlyhala.\n");
+            exit(-1);
+        }
 
         char line[100];
+        ZAZNAM *current = *modul;
         for (int i = 0; i < (*data_count); i++)
         {
-            fgets(line, sizeof(line), file_data); // posunie pointer
-            fscanf(file_data, " %c%d%c", &(*modul)[i].id_mer_modulu.oznacenie, &(*modul)[i].id_mer_modulu.cislovanie, &(*modul)[i].id_mer_modulu.druh);
-            fscanf(file_data, "%lf %lf ", &(*modul)[i].pos_mer_modulu.latitude, &(*modul)[i].pos_mer_modulu.longitude);
+            ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
+            if (novy_zaznam == NULL)
+            {
+                printf("Alokácia uzlu zlyhala.\n");
+                exit(-1);
+            }
+            current->next = novy_zaznam;
+            current = current->next;
+            current->next = NULL;
+
+            char line[100];
             fgets(line, sizeof(line), file_data);
-            strncpy((*modul)[i].typ, line, 2);
-            fscanf(file_data, "%lf ", &(*modul)[i].hodnota);
-            fscanf(file_data, "%d ", &(*modul)[i].cas);
-            fscanf(file_data, "%d ", &(*modul)[i].date);
+            fscanf(file_data, " %c%d%c", &current->id_mer_modulu.oznacenie, &current->id_mer_modulu.cislovanie, &current->id_mer_modulu.druh);
+            fscanf(file_data, "%lf %lf ", &current->pos_mer_modulu.latitude, &current->pos_mer_modulu.longitude);
+            fgets(line, sizeof(line), file_data);
+            strncpy(current->typ, line, 2);
+            fscanf(file_data, "%lf ", &current->hodnota);
+            fscanf(file_data, "%d ", &current->cas);
+            fscanf(file_data, "%d ", &current->date);
         }
 
         printf("Načítalo sa %d záznamov.\n", (*data_count));
+        return file_data;
     }
-    return file_data;
 }
 
 void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
 {
-    if (file_data != NULL)
+    ZAZNAM *current = *modul;
+    int i = 0;
+    current = current->next;
+    while (current != NULL)
     {
-        for (int i = 0; i < (*data_count); i++)
-        {
-            printf("%d:\n", i + 1); // lebo index je od 0
-            printf("ID: %c%d%c\t%s\t%.2lf\n", (*modul)[i].id_mer_modulu.oznacenie, (*modul)[i].id_mer_modulu.cislovanie, (*modul)[i].id_mer_modulu.druh, (*modul)[i].typ, (*modul)[i].hodnota);
-            printf("Poz: +%.4lf\t+%.4lf\n", (*modul)[i].pos_mer_modulu.latitude, (*modul)[i].pos_mer_modulu.longitude);
-            printf("DaC: %d\t%d\n", (*modul)[i].date, (*modul)[i].cas);
-        }
+        printf("%d:\n", i + 1); // i + 1 because index is usually displayed starting from 1
+        printf("ID: %c%d%c\t%s\t%.2lf\n", current->id_mer_modulu.oznacenie, current->id_mer_modulu.cislovanie, current->id_mer_modulu.druh, current->typ, current->hodnota);
+        printf("Poz: +%.4lf\t+%.4lf\n", current->pos_mer_modulu.latitude, current->pos_mer_modulu.longitude);
+        printf("DaC: %d\t%d\n", current->date, current->cas);
+        current = current->next;
+        i++;
     }
 }
 void f_r()
@@ -148,7 +180,7 @@ int main()
     bool n_was_started = false;
     while (1)
     {
-        scanf("%c", &input);
+        scanf(" %c", &input);
         switch (input)
         {
         case 'n':
