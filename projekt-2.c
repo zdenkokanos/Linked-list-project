@@ -29,7 +29,7 @@ typedef struct mer_modul
     struct mer_modul *next;
 } ZAZNAM;
 
-FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
+FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, ZAZNAM **tail)
 {
     char data;
     if (*n_was_started == false)
@@ -51,25 +51,28 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         (*data_count) /= 3;
         fseek(file_data, 0, SEEK_SET);
 
-        *modul = (ZAZNAM *)malloc((*data_count) * sizeof(ZAZNAM));
-        if (*modul == NULL)
-        {
-            printf("Alokácia štruktúry zlyhala.\n");
-            exit(-1);
-        }
-
         char line[100];
-        ZAZNAM *current = *modul;
+        ZAZNAM *current = NULL;
         for (int i = 0; i < (*data_count); i++)
         {
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
             if (novy_zaznam == NULL)
             {
-                printf("Alokácia uzlu zlyhala.\n");
+                printf("Alokácia štruktúry zlyhala.\n");
                 exit(-1);
             }
-            current->next = novy_zaznam;
-            current = current->next;
+
+            if ((*head) == NULL)
+            {
+                *head = novy_zaznam; // udrží mi adresu začiatku linked listu
+                current = novy_zaznam;
+            }
+            else
+            {
+                current->next = novy_zaznam;
+                current = current->next;
+            }
+
             current->next = NULL;
 
             char line[100];
@@ -81,6 +84,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
             fscanf(file_data, "%lf ", &current->hodnota);
             fscanf(file_data, "%d ", &current->cas);
             fscanf(file_data, "%d ", &current->date);
+            *tail = novy_zaznam; // koniec záznamu
         }
 
         printf("Načítalo sa %d záznamov.\n", (*data_count));
@@ -89,8 +93,8 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
     }
     else
     {
-        free(*modul);
-        *modul = NULL;
+        free(*head);
+        *head = NULL;
         fseek(file_data, 0, SEEK_SET);
         *data_count = 0;
         for (data = fgetc(file_data); data != EOF; data = fgetc(file_data))
@@ -103,25 +107,28 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
         (*data_count) /= 3;
         fseek(file_data, 0, SEEK_SET);
 
-        *modul = (ZAZNAM *)malloc((*data_count) * sizeof(ZAZNAM));
-        if (*modul == NULL)
-        {
-            printf("Alokácia štruktúry zlyhala.\n");
-            exit(-1);
-        }
-
         char line[100];
-        ZAZNAM *current = *modul;
+        ZAZNAM *current = NULL;
         for (int i = 0; i < (*data_count); i++)
         {
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
             if (novy_zaznam == NULL)
             {
-                printf("Alokácia uzlu zlyhala.\n");
+                printf("Alokácia štruktúry zlyhala.\n");
                 exit(-1);
             }
-            current->next = novy_zaznam;
-            current = current->next;
+
+            if ((*head) == NULL)
+            {
+                *head = novy_zaznam; // udrží mi adresu začiatku linked listu
+                current = novy_zaznam;
+            }
+            else
+            {
+                current->next = novy_zaznam;
+                current = current->next;
+            }
+
             current->next = NULL;
 
             char line[100];
@@ -133,18 +140,19 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
             fscanf(file_data, "%lf ", &current->hodnota);
             fscanf(file_data, "%d ", &current->cas);
             fscanf(file_data, "%d ", &current->date);
+            *tail = novy_zaznam;
         }
 
         printf("Načítalo sa %d záznamov.\n", (*data_count));
+        *n_was_started = true;
         return file_data;
     }
 }
 
-void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **modul)
+void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head)
 {
-    ZAZNAM *current = *modul;
+    ZAZNAM *current = *head;
     int i = 1;
-    current = current->next;
     while (current != NULL)
     {
         printf("%d:\n", i);
@@ -167,8 +175,45 @@ void f_u()
 {
 }
 
-void f_p()
+void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
 {
+    int c1;
+    scanf("%d", &c1);
+    if (c1 < 0)
+    {
+        printf("Číslo musí byť väčšie ako 0.\n");
+    }
+    else
+    {
+        ZAZNAM *current;
+        if (c1 > (*data_count))
+        {
+
+            ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
+            if (*head == NULL)
+            {
+                current = novy_zaznam;
+                *head = current;
+            }
+            else
+            {
+                current = *tail;
+                current->next = novy_zaznam;
+                current = current->next;
+                current->next = NULL;
+                *tail = current;
+            }
+
+            scanf(" %c%d%c", &current->id_mer_modulu.oznacenie, &current->id_mer_modulu.cislovanie, &current->id_mer_modulu.druh);
+            scanf("%lf %lf", &current->pos_mer_modulu.latitude, &current->pos_mer_modulu.longitude);
+            scanf("%2s", current->typ);
+            scanf("%lf", &current->hodnota);
+            scanf("%d", &current->cas);
+            scanf("%d", &current->date);
+            (*data_count)++;
+            *n_was_started = true;
+        }
+    }
 }
 
 int main()
@@ -176,7 +221,8 @@ int main()
     FILE *file_data = NULL;
     char input;
     int data_count = 0;
-    ZAZNAM *modul = NULL;
+    ZAZNAM *head = NULL;
+    ZAZNAM *tail = NULL;
     bool n_was_started = false;
     while (1)
     {
@@ -184,16 +230,16 @@ int main()
         switch (input)
         {
         case 'n':
-            file_data = f_n(file_data, &n_was_started, &data_count, &modul);
+            file_data = f_n(file_data, &n_was_started, &data_count, &head, &tail);
             break;
         case 'v':
-            f_v(file_data, &n_was_started, &data_count, &modul);
+            f_v(file_data, &n_was_started, &data_count, &head);
             break;
         case 'u':
             f_u();
             break;
         case 'p':
-            f_p();
+            f_p(&data_count, &head, &n_was_started, &tail);
             break;
         case 'z':
             f_z();
@@ -204,8 +250,8 @@ int main()
         case 'k':
             if (n_was_started == true)
             {
-                free(modul);
-                modul = NULL;
+                free(head);
+                head = NULL;
                 fclose(file_data);
                 return 0;
             }
