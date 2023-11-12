@@ -213,6 +213,28 @@ void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
             (*data_count)++;
             *n_was_started = true;
         }
+        else
+        {
+            ZAZNAM *previous_adress = NULL;
+            current = *head;
+            for (int i = 0; i < c1 - 2; i++)
+            {
+                current = current->next;
+            }
+            previous_adress = current->next;
+            ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
+            current->next = novy_zaznam;
+            current = current->next;
+            scanf(" %c%d%c", &current->id_mer_modulu.oznacenie, &current->id_mer_modulu.cislovanie, &current->id_mer_modulu.druh);
+            scanf("%lf %lf", &current->pos_mer_modulu.latitude, &current->pos_mer_modulu.longitude);
+            scanf("%2s", current->typ);
+            scanf("%lf", &current->hodnota);
+            scanf("%d", &current->cas);
+            scanf("%d", &current->date);
+            (*data_count)++;
+            *n_was_started = true;
+            current->next = previous_adress;
+        }
     }
 }
 
