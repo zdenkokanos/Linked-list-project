@@ -183,6 +183,7 @@ void f_z(ZAZNAM **head)
             if (*head == current)
             {
                 *head = current->next;
+                printf("Záznam pre ID: %c%d%c bol vymazaný.\n", current->id_mer_modulu.oznacenie, current->id_mer_modulu.cislovanie, current->id_mer_modulu.druh);
                 current = current->next;
                 free(temp);
                 temp = NULL;
@@ -190,6 +191,7 @@ void f_z(ZAZNAM **head)
             else
             {
                 previous->next = current->next;
+                printf("Záznam pre ID: %c%d%c bol vymazaný.\n", current->id_mer_modulu.oznacenie, current->id_mer_modulu.cislovanie, current->id_mer_modulu.druh);
                 current = current->next;
                 free(temp);
                 temp = NULL;
@@ -203,8 +205,15 @@ void f_z(ZAZNAM **head)
     }
 }
 
-void f_u()
+void f_u(ZAZNAM **head)
 {
+    ZAZNAM *current = *head;
+    ZAZNAM *temp;
+    while (current != NULL)
+    {
+        if (current->cas > current->next->cas && current->date)
+            current = current->next;
+    }
 }
 
 void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
@@ -289,7 +298,7 @@ int main()
             f_v(file_data, &n_was_started, &data_count, &head);
             break;
         case 'u':
-            f_u();
+            f_u(&head);
             break;
         case 'p':
             f_p(&data_count, &head, &n_was_started, &tail);
