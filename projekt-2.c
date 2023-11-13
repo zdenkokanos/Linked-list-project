@@ -8,14 +8,12 @@ typedef struct id_mer_modulu
     char oznacenie;
     int cislovanie;
     char druh;
-    struct id_mer_modulu *next_id;
 } ID_MOD;
 
 typedef struct pos_mer_modulu
 {
     double latitude;
     double longitude;
-    struct pos_mer_modulu *next_pos;
 } POS_MOD;
 
 typedef struct mer_modul
@@ -167,8 +165,42 @@ void f_r()
 {
 }
 
-void f_z()
+void f_z(ZAZNAM **head)
 {
+    char input_oznacenie;
+    int input_cislovanie;
+    char input_druh;
+    printf("Zadaj ID: ");
+    scanf(" %c%3d%c", &input_oznacenie, &input_cislovanie, &input_druh);
+    ZAZNAM *current = *head;
+    ZAZNAM *temp = NULL;
+    ZAZNAM *previous = NULL;
+    while (current != NULL)
+    {
+        if (input_oznacenie == current->id_mer_modulu.oznacenie && input_cislovanie == current->id_mer_modulu.cislovanie && input_druh == current->id_mer_modulu.druh)
+        {
+            temp = current;
+            if (*head == current)
+            {
+                *head = current->next;
+                current = current->next;
+                free(temp);
+                temp = NULL;
+            }
+            else
+            {
+                previous->next = current->next;
+                current = current->next;
+                free(temp);
+                temp = NULL;
+            }
+        }
+        else
+        {
+            previous = current;
+            current = current->next;
+        }
+    }
 }
 
 void f_u()
@@ -188,7 +220,6 @@ void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
         ZAZNAM *current;
         if (c1 > (*data_count))
         {
-
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
             if (*head == NULL)
             {
@@ -264,7 +295,7 @@ int main()
             f_p(&data_count, &head, &n_was_started, &tail);
             break;
         case 'z':
-            f_z();
+            f_z(&head);
             break;
         case 'r':
             f_r();
