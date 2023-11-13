@@ -175,6 +175,7 @@ void f_z(ZAZNAM **head)
     ZAZNAM *current = *head;
     ZAZNAM *temp = NULL;
     ZAZNAM *previous = NULL;
+    bool found = false;
     while (current != NULL)
     {
         if (input_oznacenie == current->id_mer_modulu.oznacenie && input_cislovanie == current->id_mer_modulu.cislovanie && input_druh == current->id_mer_modulu.druh)
@@ -196,12 +197,17 @@ void f_z(ZAZNAM **head)
                 free(temp);
                 temp = NULL;
             }
+            found = true;
         }
         else
         {
             previous = current;
             current = current->next;
         }
+        }
+    if (found == false)
+    {
+        printf("Zadané ID sa nenachádza v zozname.\n");
     }
 }
 
