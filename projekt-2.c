@@ -27,11 +27,29 @@ typedef struct mer_modul
     struct mer_modul *next;
 } ZAZNAM;
 
-FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, ZAZNAM **tail)
+FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
 {
     char data;
+
     if (*n_was_started == false)
     {
+        if (*p_was_started == true)
+        {
+            if (*head != NULL)
+            {
+                ZAZNAM *current = *head;
+                ZAZNAM *previous = NULL;
+                while (current != NULL)
+                {
+                    previous = current;
+                    current = current->next;
+                    free(previous);
+                    *head = NULL;
+                    *tail = NULL;
+                }
+            }
+        }
+        *data_count = 0;
         file_data = fopen("dataloger_V2.txt", "r");
         if (file_data == NULL)
         {
@@ -91,7 +109,14 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
     }
     else
     {
-        free(*head);
+        ZAZNAM *current = *head;
+        ZAZNAM *previous = NULL;
+        while (current != NULL)
+        {
+            previous = current;
+            current = current->next;
+            free(previous);
+        }
         *head = NULL;
         fseek(file_data, 0, SEEK_SET);
         *data_count = 0;
@@ -106,7 +131,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
         fseek(file_data, 0, SEEK_SET);
 
         char line[100];
-        ZAZNAM *current = NULL;
+        current = NULL;
         for (int i = 0; i < (*data_count); i++)
         {
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
@@ -204,7 +229,7 @@ void f_z(ZAZNAM **head)
             previous = current;
             current = current->next;
         }
-        }
+    }
     if (found == false)
     {
         printf("Zadané ID sa nenachádza v zozname.\n");
@@ -215,18 +240,36 @@ void f_u(ZAZNAM **head)
 {
     ZAZNAM *current = *head;
     ZAZNAM *temp;
+    ZAZNAM *temp_next;
     while (current != NULL)
     {
-        if (current->cas > current->next->cas && current->date)
+        if (current->next->date > current->date)
+        {
+            if (current->next->cas > current->cas)
+            {
+                temp = current->next;
+                current->next = current->next->next;
+                current->next->next = temp;
+
+                if (current == *head)
+                {
+                    *head = current->next;
+                }
+                current = current->next->next;
+            }
+        }
+        else
+        {
             current = current->next;
+        }
     }
 }
 
-void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
+void f_p(int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
 {
     int c1;
     scanf("%d", &c1);
-    if (c1 < 0)
+    if (c1 <= 0)
     {
         printf("Číslo musí byť väčšie ako 0.\n");
     }
@@ -240,6 +283,7 @@ void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
             {
                 current = novy_zaznam;
                 *head = current;
+                *tail = current;
             }
             else
             {
@@ -257,7 +301,6 @@ void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
             scanf("%d", &current->cas);
             scanf("%d", &current->date);
             (*data_count)++;
-            *n_was_started = true;
         }
         else
         {
@@ -278,10 +321,10 @@ void f_p(int *data_count, ZAZNAM **head, bool *n_was_started, ZAZNAM **tail)
             scanf("%d", &current->cas);
             scanf("%d", &current->date);
             (*data_count)++;
-            *n_was_started = true;
             current->next = previous_adress;
         }
     }
+    *p_was_started = true;
 }
 
 int main()
@@ -292,13 +335,14 @@ int main()
     ZAZNAM *head = NULL;
     ZAZNAM *tail = NULL;
     bool n_was_started = false;
+    bool p_was_started = false;
     while (1)
     {
         scanf(" %c", &input);
         switch (input)
         {
         case 'n':
-            file_data = f_n(file_data, &n_was_started, &data_count, &head, &tail);
+            file_data = f_n(file_data, &n_was_started, &data_count, &head, &tail, &p_was_started);
             break;
         case 'v':
             f_v(file_data, &n_was_started, &data_count, &head);
@@ -307,7 +351,7 @@ int main()
             f_u(&head);
             break;
         case 'p':
-            f_p(&data_count, &head, &n_was_started, &tail);
+            f_p(&data_count, &head, &tail, &p_was_started);
             break;
         case 'z':
             f_z(&head);
