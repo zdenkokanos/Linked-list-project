@@ -304,16 +304,27 @@ void f_p(int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
         }
         else
         {
-            ZAZNAM *previous_adress = NULL;
+            ZAZNAM *previous = NULL;
             current = *head;
             for (int i = 0; i < c1 - 2; i++)
             {
                 current = current->next;
             }
-            previous_adress = current->next;
+
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
-            current->next = novy_zaznam;
-            current = current->next;
+            if (c1 == 1)
+            {
+                previous = *head;
+                *head = novy_zaznam;
+                current = *head;
+            }
+            else
+            {
+                previous = current->next;
+                current->next = novy_zaznam;
+                current = current->next;
+            }
+
             scanf(" %c%d%c", &current->id_mer_modulu.oznacenie, &current->id_mer_modulu.cislovanie, &current->id_mer_modulu.druh);
             scanf("%lf %lf", &current->pos_mer_modulu.latitude, &current->pos_mer_modulu.longitude);
             scanf("%2s", current->typ);
@@ -321,7 +332,7 @@ void f_p(int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
             scanf("%d", &current->cas);
             scanf("%d", &current->date);
             (*data_count)++;
-            current->next = previous_adress;
+            current->next = previous;
         }
     }
     *p_was_started = true;
