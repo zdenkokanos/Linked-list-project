@@ -186,11 +186,8 @@ void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head)
         i++;
     }
 }
-void f_r()
-{
-}
 
-void f_z(ZAZNAM **head)
+void f_z(ZAZNAM **head, ZAZNAM **tail)
 {
     char input_oznacenie;
     int input_cislovanie;
@@ -230,38 +227,154 @@ void f_z(ZAZNAM **head)
             current = current->next;
         }
     }
+    current = *head;
+    while (current != NULL)
+    {
+        *tail = current;
+        current = current->next;
+    }
+
     if (found == false)
     {
         printf("Zadané ID sa nenachádza v zozname.\n");
     }
 }
 
-void f_u(ZAZNAM **head)
+void f_u(ZAZNAM **head, int *data_count)
 {
     ZAZNAM *current = *head;
+    ZAZNAM *previous;
     ZAZNAM *temp;
-    ZAZNAM *temp_next;
-    while (current != NULL)
+    ZAZNAM *left;
+    ZAZNAM *right;
+    bool swap = false;
+    for (int i = 0; i < *data_count; i++)
     {
-        if (current->next->date > current->date)
+        for (int j = 0; j < *data_count - i - 1; i++)
         {
-            if (current->next->cas > current->cas)
+            left = current;
+            right = current->next;
+            if (left->date > right->date)
             {
-                temp = current->next;
-                current->next = current->next->next;
-                current->next->next = temp;
+                temp = left;
+                left = right;
+                right = temp;
+                *head = left;
+            }
+        }
+        current = current->next;
+    }
+}
 
-                if (current == *head)
+void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
+{
+    int c1;
+    int c2;
+    ZAZNAM *prev_c1;
+    ZAZNAM *node_c1;
+    ZAZNAM *node_c2;
+    ZAZNAM *prev_c2;
+    ZAZNAM *current = *head;
+    ZAZNAM *temp;
+    printf("Zadaj polohy c1 a c2: ");
+    scanf("%d %d", &c1, &c2);
+    if (c1 <= 0 || c1 > *data_count || c2 <= 0 || c2 > *data_count)
+    {
+        printf("Zadané zlé číslo.\n");
+    }
+    else
+    {
+        if (c1 == 1 || c2 == 1)
+        {
+            if (c1 == 1)
+            {
+                node_c1 = *head;
+                current = *head;
+                for (int i = 1; i < c2; i++)
                 {
-                    *head = current->next;
+                    prev_c2 = current;
+                    current = current->next;
+                    node_c2 = current;
                 }
-                current = current->next->next;
+                *head = node_c2;
+                temp = node_c2->next;
+                if (abs(c1 - c2) == 1)
+                {
+                    node_c2->next = node_c1;
+                    node_c1->next = temp;
+                }
+                else
+                {
+                    node_c2->next = node_c1->next;
+                    node_c1->next = temp;
+                    prev_c2->next = node_c1;
+                }
+            }
+            else if (c2 == 1)
+            {
+                node_c2 = *head;
+                current = *head;
+                for (int i = 1; i < c1; i++)
+                {
+                    prev_c1 = current;
+                    current = current->next;
+                    node_c1 = current;
+                }
+                *head = node_c1;
+                temp = node_c1->next;
+                if (abs(c1 - c2) == 1)
+                {
+                    node_c1->next = node_c2;
+                    node_c2->next = temp;
+                }
+                else
+                {
+
+                    node_c1->next = node_c2->next;
+                    node_c2->next = temp;
+                    prev_c2->next = node_c2;
+                }
             }
         }
         else
         {
-            current = current->next;
+            for (int i = 1; i < c1; i++)
+            {
+                prev_c1 = current;
+                current = current->next;
+                node_c1 = current;
+            }
+            current = *head;
+            for (int i = 1; i < c2; i++)
+            {
+                prev_c2 = current;
+                current = current->next;
+                node_c2 = current;
+            }
+            temp = node_c2->next;
+            if (abs(c1 - c2) == 1) // záznamy idúce za sebou
+            {
+                prev_c1->next = node_c2;
+                node_c2->next = node_c1;
+                node_c1->next = temp;
+            }
+            else
+            {
+                prev_c1->next = node_c2;
+                node_c2->next = node_c1->next;
+                prev_c2->next = node_c1;
+                node_c1->next = temp;
+            }
         }
+        if (node_c1->next == NULL)
+        {
+            *tail = node_c1;
+        }
+        if (node_c2->next == NULL)
+        {
+            *tail = node_c2;
+        }
+        printf("Záznamy boli úspešne vymenené.\n");
     }
 }
 
@@ -359,16 +472,16 @@ int main()
             f_v(file_data, &n_was_started, &data_count, &head);
             break;
         case 'u':
-            f_u(&head);
+            f_u(&head, &data_count);
             break;
         case 'p':
             f_p(&data_count, &head, &tail, &p_was_started);
             break;
         case 'z':
-            f_z(&head);
+            f_z(&head, &tail);
             break;
         case 'r':
-            f_r();
+            f_r(&head, &tail, &data_count);
             break;
         case 'k':
             if (n_was_started == true)
