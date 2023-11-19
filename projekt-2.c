@@ -118,6 +118,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
             free(previous);
         }
         *head = NULL;
+        *tail = NULL;
         fseek(file_data, 0, SEEK_SET);
         *data_count = 0;
         for (data = fgetc(file_data); data != EOF; data = fgetc(file_data))
@@ -228,7 +229,7 @@ void f_z(ZAZNAM **head, ZAZNAM **tail)
         }
     }
     current = *head;
-    while (current != NULL)
+    while (current != NULL) // zistím kde mám poslednú štruktúru
     {
         *tail = current;
         current = current->next;
@@ -243,26 +244,53 @@ void f_z(ZAZNAM **head, ZAZNAM **tail)
 void f_u(ZAZNAM **head, int *data_count)
 {
     ZAZNAM *current = *head;
-    ZAZNAM *previous;
-    ZAZNAM *temp;
-    ZAZNAM *left;
-    ZAZNAM *right;
-    bool swap = false;
-    for (int i = 0; i < *data_count; i++)
+    ZAZNAM *temp = NULL;
+    ZAZNAM *left = NULL;
+    ZAZNAM *right = NULL;
+    ZAZNAM *previous = NULL;
+    bool sorted = false;
+    bool sort_also = false;
+    if (*head == NULL || (*head)->next == NULL)
     {
-        for (int j = 0; j < *data_count - i - 1; i++)
+        printf("Nedostatok záznamov na triedenie.\n");
+    }
+    else
+    {
+        while (sorted == false)
         {
-            left = current;
-            right = current->next;
-            if (left->date > right->date)
+            sorted = true;
+            current = *head;
+            previous = NULL;
+
+            while (current->next != NULL)
             {
-                temp = left;
-                left = right;
-                right = temp;
-                *head = left;
+                left = current;
+                right = current->next;
+                if (left->date > right->date || (left->date == right->date && left->cas > right->cas))
+                {
+                    sorted = false;
+                    if (previous == NULL)
+                    {
+                        *head = right;
+                        left->next = right->next;
+                        right->next = left;
+                        current = *head;
+                    }
+                    else
+                    {
+                        left->next = right->next;
+                        right->next = left;
+                        previous->next = right;
+                        current = right;
+                    }
+                }
+                else
+                {
+                    previous = current;
+                    current = current->next;
+                }
             }
         }
-        current = current->next;
     }
 }
 
@@ -270,17 +298,17 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
 {
     int c1;
     int c2;
-    ZAZNAM *prev_c1;
-    ZAZNAM *node_c1;
-    ZAZNAM *node_c2;
-    ZAZNAM *prev_c2;
+    ZAZNAM *prev_c1 = NULL;
+    ZAZNAM *node_c1 = NULL;
+    ZAZNAM *node_c2 = NULL;
+    ZAZNAM *prev_c2 = NULL;
     ZAZNAM *current = *head;
-    ZAZNAM *temp;
+    ZAZNAM *temp = NULL;
     printf("Zadaj polohy c1 a c2: ");
     scanf("%d %d", &c1, &c2);
     if (c1 <= 0 || c1 > *data_count || c2 <= 0 || c2 > *data_count)
     {
-        printf("Zadané zlé číslo.\n");
+        // žiaden výstup pokiaľ nebolo stlačené n alebo zadané zlé hodnoty c1 a c2
     }
     else
     {
@@ -332,7 +360,7 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
 
                     node_c1->next = node_c2->next;
                     node_c2->next = temp;
-                    prev_c2->next = node_c2;
+                    prev_c1->next = node_c2;
                 }
             }
         }
@@ -484,7 +512,7 @@ int main()
             f_r(&head, &tail, &data_count);
             break;
         case 'k':
-            if (n_was_started == true)
+            if (head != NULL)
             {
                 free(head);
                 head = NULL;
