@@ -241,7 +241,7 @@ void f_z(ZAZNAM **head, ZAZNAM **tail)
     }
 }
 
-void f_u(ZAZNAM **head, int *data_count)
+void f_u(ZAZNAM **head, int *data_count, ZAZNAM **tail)
 {
     ZAZNAM *current = *head;
     ZAZNAM *temp = NULL;
@@ -291,6 +291,12 @@ void f_u(ZAZNAM **head, int *data_count)
                 }
             }
         }
+    }
+    current = *head;
+    while (current != NULL)
+    {
+        *tail = current;
+        current = current->next;
     }
 }
 
@@ -500,7 +506,7 @@ int main()
             f_v(file_data, &n_was_started, &data_count, &head);
             break;
         case 'u':
-            f_u(&head, &data_count);
+            f_u(&head, &data_count, &tail);
             break;
         case 'p':
             f_p(&data_count, &head, &tail, &p_was_started);
