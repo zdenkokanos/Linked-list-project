@@ -249,10 +249,9 @@ void f_u(ZAZNAM **head, int *data_count, ZAZNAM **tail)
     ZAZNAM *right = NULL;
     ZAZNAM *previous = NULL;
     bool sorted = false;
-    bool sort_also = false;
     if (*head == NULL || (*head)->next == NULL)
     {
-        printf("Nedostatok záznamov na triedenie.\n");
+        printf("Chyba usporiadania.\n");
     }
     else
     {
