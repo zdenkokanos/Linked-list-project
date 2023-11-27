@@ -498,7 +498,7 @@ int main()
     int data_count = 0;
     ZAZNAM *head = NULL;
     ZAZNAM *tail = NULL;
-    ZAZNAM *temp = NULL;
+    ZAZNAM *prev = NULL;
     bool n_was_started = false;
     bool p_was_started = false;
     while (1)
@@ -529,10 +529,10 @@ int main()
             {
                 while (head != NULL)
                 {
-                    temp = head;
+                    prev = head;
                     head = head->next;
-                    free(temp);
-                    temp = NULL;
+                    free(prev);
+                    prev = NULL;
                 }
                 fclose(file_data);
                 return 0;
