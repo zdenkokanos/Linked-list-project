@@ -31,11 +31,11 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
 {
     char data;
 
-    if (*n_was_started == false)
+    if (*n_was_started == false) // ak nebolo zapnuté
     {
         if (*p_was_started == true)
         {
-            if (*head != NULL)
+            if (*head != NULL) // ak náhodou bol pridaný záznam cez funkciu p, vymazem ho
             {
                 ZAZNAM *current = *head;
                 ZAZNAM *previous = NULL;
@@ -49,7 +49,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
                 }
             }
         }
-        *data_count = 0;
+        *data_count = 0; // počet záznamov dám na 0
         file_data = fopen("dataloger_V2.txt", "r");
         if (file_data == NULL)
         {
@@ -57,7 +57,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
             exit(-1);
         }
         fseek(file_data, 0, SEEK_SET);
-        for (data = fgetc(file_data); data != EOF; data = fgetc(file_data))
+        for (data = fgetc(file_data); data != EOF; data = fgetc(file_data)) // spočíta záznamy v súbore
         {
             if (data == '$')
             {
@@ -69,7 +69,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
 
         char line[100];
         ZAZNAM *current = NULL;
-        for (int i = 0; i < (*data_count); i++)
+        for (int i = 0; i < (*data_count); i++) // vložím záznamy do štruktúry
         {
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
             if (novy_zaznam == NULL)
@@ -107,7 +107,7 @@ FILE *f_n(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head, 
         *n_was_started = true;
         return file_data;
     }
-    else
+    else // ak už pred tým bolo stlačené n bolo niečo načítané do štruktúry, najprv free potom vložím do structu záznamy
     {
         ZAZNAM *current = *head;
         ZAZNAM *previous = NULL;
@@ -188,7 +188,7 @@ void f_v(FILE *file_data, bool *n_was_started, int *data_count, ZAZNAM **head)
     }
 }
 
-void f_z(ZAZNAM **head, ZAZNAM **tail)
+void f_z(ZAZNAM **head, ZAZNAM **tail, int *data_count)
 {
     char input_oznacenie;
     int input_cislovanie;
@@ -211,6 +211,7 @@ void f_z(ZAZNAM **head, ZAZNAM **tail)
                 current = current->next;
                 free(temp);
                 temp = NULL;
+                (*data_count)--;
             }
             else
             {
@@ -219,6 +220,7 @@ void f_z(ZAZNAM **head, ZAZNAM **tail)
                 current = current->next;
                 free(temp);
                 temp = NULL;
+                (*data_count)--;
             }
             found = true;
         }
@@ -249,15 +251,19 @@ void f_u(ZAZNAM **head, int *data_count, ZAZNAM **tail)
     ZAZNAM *right = NULL;
     ZAZNAM *previous = NULL;
     bool sorted = false;
-    if (*head == NULL || (*head)->next == NULL)
+    if (*head == NULL)
     {
-        printf("Chyba usporiadania.\n");
+        printf("V zozname sa nič nenachádza.\n");
+    }
+    else if ((*head)->next == NULL)
+    {
+        printf("V zozname je len jedna štruktúra.\n");
     }
     else
     {
-        while (sorted == false)
+        while (sorted == false) // kým nie je všetko vysortované
         {
-            sorted = true;
+            sorted = true; // pokial je vysortovaný tak nikdy neskočí naspäť na false
             current = *head;
             previous = NULL;
 
@@ -268,14 +274,14 @@ void f_u(ZAZNAM **head, int *data_count, ZAZNAM **tail)
                 if (left->date > right->date || (left->date == right->date && left->cas > right->cas))
                 {
                     sorted = false;
-                    if (previous == NULL)
+                    if (previous == NULL) // ak je to prvý záznam ktorý vymieňam
                     {
                         *head = right;
                         left->next = right->next;
                         right->next = left;
                         current = *head;
                     }
-                    else
+                    else // ostatné
                     {
                         left->next = right->next;
                         right->next = left;
@@ -313,13 +319,14 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
     scanf("%d %d", &c1, &c2);
     if (c1 <= 0 || c1 > *data_count || c2 <= 0 || c2 > *data_count)
     {
+        printf("Nejdeeeeeee.\n");
         // žiaden výstup pokiaľ nebolo stlačené n alebo zadané zlé hodnoty c1 a c2
     }
     else
     {
-        if (c1 == 1 || c2 == 1)
+        if (c1 == 1 || c2 == 1) // ak c1 alebo c2 je prvá štruktúra
         {
-            if (c1 == 1)
+            if (c1 == 1) // ak c1 tak sprav c2 = prvý prvok
             {
                 node_c1 = *head;
                 current = *head;
@@ -343,7 +350,7 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
                     prev_c2->next = node_c1;
                 }
             }
-            else if (c2 == 1)
+            else if (c2 == 1) // ak c2 tak c1 = prvý prvok
             {
                 node_c2 = *head;
                 current = *head;
@@ -371,14 +378,14 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
         }
         else
         {
-            for (int i = 1; i < c1; i++)
+            for (int i = 1; i < c1; i++) // zisti ktorá adresa je pre c1
             {
                 prev_c1 = current;
                 current = current->next;
                 node_c1 = current;
             }
             current = *head;
-            for (int i = 1; i < c2; i++)
+            for (int i = 1; i < c2; i++) // zisti ktorá adresa je pre c2
             {
                 prev_c2 = current;
                 current = current->next;
@@ -399,7 +406,7 @@ void f_r(ZAZNAM **head, ZAZNAM **tail, int *data_count)
                 node_c1->next = temp;
             }
         }
-        if (node_c1->next == NULL)
+        if (node_c1->next == NULL) // pokial menim posledny prvok zmenim aj tail
         {
             *tail = node_c1;
         }
@@ -422,7 +429,7 @@ void f_p(int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
     else
     {
         ZAZNAM *current;
-        if (c1 > (*data_count))
+        if (c1 > (*data_count)) // ak c1 je vacsie tak zapisem na koniec zoznamu
         {
             ZAZNAM *novy_zaznam = (ZAZNAM *)malloc(sizeof(ZAZNAM));
             if (*head == NULL)
@@ -448,7 +455,7 @@ void f_p(int *data_count, ZAZNAM **head, ZAZNAM **tail, bool *p_was_started)
             scanf("%d", &current->date);
             (*data_count)++;
         }
-        else
+        else // zapisem prvok na miesto ktoré bolo zadané
         {
             ZAZNAM *previous = NULL;
             current = *head;
@@ -491,6 +498,7 @@ int main()
     int data_count = 0;
     ZAZNAM *head = NULL;
     ZAZNAM *tail = NULL;
+    ZAZNAM *temp = NULL;
     bool n_was_started = false;
     bool p_was_started = false;
     while (1)
@@ -511,7 +519,7 @@ int main()
             f_p(&data_count, &head, &tail, &p_was_started);
             break;
         case 'z':
-            f_z(&head, &tail);
+            f_z(&head, &tail, &data_count);
             break;
         case 'r':
             f_r(&head, &tail, &data_count);
@@ -519,8 +527,13 @@ int main()
         case 'k':
             if (head != NULL)
             {
-                free(head);
-                head = NULL;
+                while (head != NULL)
+                {
+                    temp = head;
+                    head = head->next;
+                    free(temp);
+                    temp = NULL;
+                }
                 fclose(file_data);
                 return 0;
             }
